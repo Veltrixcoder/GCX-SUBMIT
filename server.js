@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 
 // Proxy API requests to gcx.co.in
 app.use('/api', createProxyMiddleware({
-  target: 'http://gcx.co.in',
+  target: 'https://gcx-main.vercel.app',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '', // Remove /api prefix when forwarding to target
