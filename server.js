@@ -46,7 +46,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('/'));
+app.use(express.static('public'));
 
 // Store logs in memory (in production, use a database)
 let serverLogs = [];
@@ -256,7 +256,7 @@ app.get('/', (req, res) => {
         userAgent: req.get('User-Agent'),
         ip: req.ip 
     });
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
