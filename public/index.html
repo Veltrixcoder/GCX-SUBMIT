@@ -259,6 +259,10 @@
             <!-- Login Form -->
             <div id="loginSection">
                     <h2 class="text-2xl font-semibold text-white mb-6 text-center">Welcome Back</h2>
+                    <!-- Error Display Area -->
+                    <div id="loginError" class="hidden bg-red-500 bg-opacity-20 border border-red-500 border-opacity-30 text-red-300 p-4 rounded-xl mb-6 text-center">
+                        <span id="loginErrorText"></span>
+                    </div>
                     <form id="loginForm" class="space-y-6">
                         <div class="space-y-2">
                             <label for="loginEmail" class="block text-sm font-medium text-white text-opacity-90">Email Address</label>
@@ -653,11 +657,39 @@
         const submitGiftCardBtn = document.getElementById('submitGiftCardBtn');
         const homeLogoutButton = document.getElementById('homeLogoutButton');
 
+        // Show loading modal
+        function showLoadingModal(message = 'Processing...') {
+            console.log('Showing loading modal:', message);
+            const modal = document.createElement('div');
+            modal.id = 'loadingModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 text-center">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-white text-lg">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function hideLoadingModal() {
+            console.log('Hiding loading modal');
+            const modal = document.getElementById('loadingModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Email validation
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
         // Show loading state
         function setLoading(buttonId, isLoading) {
             const button = document.getElementById(buttonId);
             if (isLoading) {
-                // Store original text if not already stored
                 if (!button.getAttribute('data-original-text')) {
                     button.setAttribute('data-original-text', button.innerHTML);
                 }
@@ -668,7 +700,6 @@
                 `;
             } else {
                 button.disabled = false;
-                // Restore original text
                 const originalText = button.getAttribute('data-original-text');
                 if (originalText) {
                     button.innerHTML = originalText;
@@ -677,14 +708,24 @@
         }
 
         // Show error message
-        function showError(message) {
-            const statusDiv = document.getElementById('uploadStatus');
-            statusDiv.className = 'status-message bg-red-500 bg-opacity-20 text-white p-4 rounded-xl';
-            statusDiv.textContent = message;
-            statusDiv.classList.remove('hidden');
-            setTimeout(() => {
-                statusDiv.classList.add('hidden');
-            }, 5000);
+        function showError(message, target = 'uploadStatus') {
+            const statusDiv = document.getElementById(target);
+            if (target === 'loginError') {
+                const errorDiv = document.getElementById('loginError');
+                const errorText = document.getElementById('loginErrorText');
+                errorText.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            } else {
+                statusDiv.className = 'status-message bg-red-500 bg-opacity-20 text-white p-4 rounded-xl';
+                statusDiv.textContent = message;
+                statusDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
+            }
         }
 
         // Show success message
@@ -701,12 +742,25 @@
         // Handle login form submission
         loginForm.addEventListener('submit', async function(event) {
             event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // Validate email
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address', 'loginError');
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter your password', 'loginError');
+                return;
+            }
+
             setLoading('loginButton', true);
+            showLoadingModal('Signing you in...');
 
             try {
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -717,12 +771,12 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    // Store user data from response
                     sessionStorage.setItem('userId', result.user.id);
                     sessionStorage.setItem('userEmail', result.user.email);
                     sessionStorage.setItem('userName', result.user.name);
                     
-                    // Send OTP
+                    showLoadingModal('Sending verification code...');
+                    
                     const otpResponse = await fetch('/api/send-otp', {
                         method: 'POST',
                         headers: {
@@ -733,43 +787,54 @@
 
                     const otpResult = await otpResponse.json();
                     if (otpResult.success) {
+                        hideLoadingModal();
                         showSuccess('OTP sent to your email!');
                         authSection.classList.add('hidden');
                         otpSection.classList.remove('hidden');
                     } else {
-                        showError(otpResult.error || 'Failed to send OTP');
+                        hideLoadingModal();
+                        showError(otpResult.error || 'Failed to send OTP', 'loginError');
                     }
                 } else {
-                    showError(result.error || 'Login failed');
+                    hideLoadingModal();
+                    showError(result.error || 'Login failed', 'loginError');
                 }
             } catch (error) {
-                showError('Login failed: ' + error.message);
+                hideLoadingModal();
+                showError('Login failed: ' + error.message, 'loginError');
             } finally {
                 setLoading('loginButton', false);
+                hideLoadingModal();
             }
         });
 
         // Handle register form submission
         registerForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            setLoading('registerButton', true);
-
+            
             const name = document.getElementById('registerName').value.trim();
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
+            // Validation
             if (!name || !email || !password || !confirmPassword) {
                 showError('Please fill in all fields');
-                setLoading('registerButton', false);
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address');
                 return;
             }
 
             if (password !== confirmPassword) {
                 showError('Passwords do not match');
-                setLoading('registerButton', false);
                 return;
             }
+
+            setLoading('registerButton', true);
+            showLoadingModal('Creating your account...');
 
             try {
                 const response = await fetch('/api/register', {
@@ -783,10 +848,8 @@
                 const result = await response.json();
                 if (result.success) {
                     showSuccess('Account created successfully! Please login.');
-                    // Switch back to login form
                     document.getElementById('registerSection').classList.add('hidden');
                     document.getElementById('loginSection').classList.remove('hidden');
-                    // Clear register form
                     document.getElementById('registerForm').reset();
                 } else {
                     showError(result.error || 'Registration failed');
@@ -795,18 +858,25 @@
                 showError('Registration failed: ' + error.message);
             } finally {
                 setLoading('registerButton', false);
+                hideLoadingModal();
             }
         });
 
         // Handle OTP form submission
         otpForm.addEventListener('submit', async function(event) {
             event.preventDefault();
+            
+            const otp = document.getElementById('otp').value;
+            if (!otp || otp.length !== 6) {
+                showError('Please enter a valid 6-digit code');
+                return;
+            }
+
             setLoading('verifyOtpButton', true);
+            showLoadingModal('Verifying your code...');
 
             try {
-                const otp = document.getElementById('otp').value;
                 const email = sessionStorage.getItem('userEmail');
-
                 const response = await fetch('/api/verify-otp', {
                     method: 'POST',
                     headers: {
@@ -817,7 +887,6 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    // Store OTP token for future requests
                     sessionStorage.setItem('otpToken', otp);
                     showSuccess('OTP verified successfully!');
                     otpSection.classList.add('hidden');
@@ -829,12 +898,15 @@
                 showError('Failed to verify OTP: ' + error.message);
             } finally {
                 setLoading('verifyOtpButton', false);
+                hideLoadingModal();
             }
         });
 
         // Handle resend OTP
         document.getElementById('resendOtpButton').addEventListener('click', async function() {
             setLoading('resendOtpButton', true);
+            showLoadingModal('Resending verification code...');
+            
             const email = sessionStorage.getItem('userEmail');
 
             try {
@@ -856,6 +928,7 @@
                 showError('Failed to resend OTP: ' + error.message);
             } finally {
                 setLoading('resendOtpButton', false);
+                hideLoadingModal();
             }
         });
 
