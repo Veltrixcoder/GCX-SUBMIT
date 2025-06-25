@@ -3,511 +3,1151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GCX (Gift Card Exchange) - Track Status</title>
+    <title>GCX (Gift Card Exchange)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'apple-gray': '#1d1d1f',
+                        'apple-blue': '#0071e3',
+                        'apple-light': '#f5f5f7',
+                        'apple-dark': '#1d1d1f',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root { --apple-blue: #0071e3; --apple-gray: #1d1d1f; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-        .gradient-bg { background: linear-gradient(135deg, #000000 0%, #1d1d1f 100%); }
-        .glass-effect { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); }
-        .apple-button { background: var(--apple-blue); border-radius: 980px; font-weight: 500; transition: all 0.3s ease; }
-        .apple-button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3); }
-        .apple-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; transition: all 0.3s ease; }
-        .apple-input:focus { border-color: var(--apple-blue); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
-        .apple-card { background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
-        .apple-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
-        .status-approved { background: #34d399; } .status-rejected { background: #f87171; } .status-pending { background: #fbbf24; }
-        .modal-backdrop { backdrop-filter: blur(10px); }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
-        @media (max-width: 768px) { .chat-container { width: 100vw; height: 100vh; bottom: 0; right: 0; border-radius: 0; } }
+        :root {
+            --apple-blue: #0071e3;
+            --apple-gray: #1d1d1f;
+            --apple-light: #f5f5f7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #000000 0%, #1d1d1f 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .card-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        }
+
+        .btn-primary {
+            background: var(--apple-blue);
+            transition: all 0.3s ease;
+            border-radius: 980px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-badge {
+            border-radius: 980px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 1rem;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--apple-blue);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .apple-button {
+            background: var(--apple-blue);
+            color: white;
+            border-radius: 980px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .apple-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+
+        .apple-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .apple-input:focus {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+        }
+
+        .apple-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .apple-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .apple-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .apple-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .apple-footer {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Splash fade-out animation */
+        #splashScreen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1);
+        }
+        .main-content.fade-in {
+            display: block !important;
+            animation: fadeInMain 0.8s cubic-bezier(0.4,0,0.2,1);
+        }
+        @keyframes fadeInMain {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Splash logo slow zoom in/out */
+        .splash-zoom {
+            animation: splashZoom 6s ease-in-out infinite alternate;
+        }
+        @keyframes splashZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.5); }
+        }
     </style>
 </head>
-<body class="min-h-screen gradient-bg text-white">
-    <!-- Header -->
-    <header class="w-full glass-effect card-shadow p-6 flex flex-col sm:flex-row items-center justify-between mb-8">
-        <div class="flex items-center space-x-4">
-            <img src="logo.png" alt="GCX Logo" class="w-14 h-14 rounded-full bg-white bg-opacity-10 p-2">
-            <div>
-                <h1 class="text-3xl font-bold text-white">GCX (Gift Card Exchange)</h1>
-                <p class="text-white text-opacity-70 text-lg">Track your gift card status</p>
-            </div>
-        </div>
-        <a href="/" class="apple-button text-white px-6 py-3 mt-4 sm:mt-0 font-semibold flex items-center space-x-2">
-            <i class="fas fa-arrow-left"></i>
-            <span>Back to Home</span>
-        </a>
-    </header>
-
-    <!-- Main Menu Content (visible by default) -->
-    <div id="mainMenuContent">
-        <div class="max-w-7xl mx-auto px-6 py-8">
-            <!-- Welcome Section -->
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-white mb-4">Welcome to GCX (Gift Card Exchange)</h2>
-                <p class="text-white text-opacity-90 text-xl">Your One-Stop Portal for Converting Gift Cards to Real Cash & Unlocking Digital Reward Secrets.</p>
-                <!-- Track Status Button inside content -->
-                <div class="mt-8 flex justify-center">
-                    <button id="trackStatusBtn" class="apple-button text-white px-8 py-4 text-lg font-semibold flex items-center justify-center">
-                        <i class="fas fa-search mr-2"></i> Track Status
-                    </button>
-                </div>
-            </div>
-            <!-- Gift Card Conversion Section -->
-            <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12 feature-card">
-                <h3 class="text-3xl font-bold text-white mb-6">💳 Convert Gift Cards to Cash</h3>
-                <p class="text-white text-opacity-90 mb-8 text-lg">Got useless gift cards lying around? We make it super simple to turn them into actual money. No shady middlemen. No delays. Just fast payouts.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div class="space-y-4">
-                        <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
-                            <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-lg">100% safe & verified</span>
-                        </div>
-                        <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
-                            <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-lg">Support for Roblox, Overwatch, and Amazon</span>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
-                            <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-lg">UPI, Paytm & crypto transfer options available</span>
-                        </div>
-                        <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
-                            <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-lg">AI Powered verification system</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- YouTube Tips Section -->
-            <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12">
-                <h3 class="text-2xl font-bold text-white mb-6">🎯 Latest Tips from YouTube</h3>
-                <p class="text-white text-opacity-90 mb-6">Powered by <a href="https://www.youtube.com/@shirtlessdigital" class="text-white font-semibold hover:text-opacity-80">@ShirtLessDigital</a>, we bring you top tricks on how to <strong>maximize Microsoft Rewards, qualify more surveys</strong>, and <strong>stay updated on VPN workarounds</strong> to boost your digital earnings.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white bg-opacity-5 rounded-xl p-6">
-                        <h4 class="text-xl font-bold text-white mb-4">🎥 Trick To Qualify Most Surveys</h4>
-                        <ul class="space-y-2 text-white text-opacity-90">
-                            <li>• Update your profile regularly</li>
-                            <li>• Use desktop mode for better matching</li>
-                            <li>• Enable all categories for more availability</li>
-                        </ul>
-                        <p class="text-white text-opacity-70 mt-4 italic">Quick win: Try these today and watch your earnings grow.</p>
-                    </div>
-                    <div class="bg-white bg-opacity-5 rounded-xl p-6">
-                        <h4 class="text-xl font-bold text-white mb-4">🎥 Microsoft Rewards VPN Update</h4>
-                        <ul class="space-y-2 text-white text-opacity-90">
-                            <li>• New rules affecting point tracking</li>
-                            <li>• Best VPN setup guide (country/server)</li>
-                            <li>• How to avoid flagging your account</li>
-                        </ul>
-                        <p class="text-white text-opacity-70 mt-4 italic">Stay ahead of Microsoft's latest policy tweaks.</p>
-                    </div>
-                </div>
-            </div>
-            <!-- How It Works Section -->
-            <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12">
-                <h3 class="text-3xl font-bold text-white mb-8">⚙️ How It Works</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-center feature-card p-6 rounded-xl">
-                        <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
-                            <span class="text-3xl">1</span>
-                        </div>
-                        <h4 class="text-2xl font-bold text-white mb-3">Submit Gift Card Details</h4>
-                        <p class="text-white text-opacity-90 text-lg">Choose your card type and value, upload proof video</p>
-                    </div>
-                    <div class="text-center feature-card p-6 rounded-xl">
-                        <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
-                            <span class="text-3xl">2</span>
-                        </div>
-                        <h4 class="text-2xl font-bold text-white mb-3">Verification</h4>
-                        <p class="text-white text-opacity-90 text-lg">AI Powered system checks and validates your card</p>
-                    </div>
-                    <div class="text-center feature-card p-6 rounded-xl">
-                        <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
-                            <span class="text-3xl">3</span>
-                        </div>
-                        <h4 class="text-2xl font-bold text-white mb-3">Get Paid</h4>
-                        <p class="text-white text-opacity-90 text-lg">Choose from UPI, Paytm, or crypto transfer</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Trusted By Section -->
-            <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12 feature-card">
-                <h3 class="text-3xl font-bold text-white mb-6">📲 Trusted By 100+ Users</h3>
-                <div class="bg-white bg-opacity-5 rounded-xl p-8">
-                    <p class="text-white text-opacity-90 italic text-lg">"SLD GC Portal helped me not only cash out my card but also taught me how to earn more with daily reward hacks. 10/10!"</p>
-                    <p class="text-white font-semibold mt-4 text-lg">– Ravi, Lucknow</p>
-                </div>
-            </div>
-            <!-- FAQ Section -->
-            <div class="bg-white bg-opacity-10 rounded-xl p-8 feature-card">
-                <h3 class="text-3xl font-bold text-white mb-8">🧾 Frequently Asked Questions</h3>
-                <div class="space-y-8">
-                    <div class="bg-white bg-opacity-5 p-6 rounded-xl">
-                        <h4 class="text-2xl font-bold text-white mb-3">Which gift cards do you support?</h4>
-                        <p class="text-white text-opacity-90 text-lg">Amazon, Overwatch, and Roblox.</p>
-                    </div>
-                    <div class="bg-white bg-opacity-5 p-6 rounded-xl">
-                        <h4 class="text-2xl font-bold text-white mb-3">How do I prove my card is real?</h4>
-                        <p class="text-white text-opacity-90 text-lg">Record a short video showing the card redemption, and upload it during the submission process.</p>
-                    </div>
-                    <div class="bg-white bg-opacity-5 p-6 rounded-xl">
-                        <h4 class="text-2xl font-bold text-white mb-3">Is this legit?</h4>
-                        <p class="text-white text-opacity-90 text-lg">100%. We verify every transaction and offer real-time support.</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Footer -->
-            <div class="text-center text-white text-opacity-70 mt-12 pb-8">
-                <p>© 2025 GCX (Gift Card Exchange). All rights reserved.</p>
-                <div class="mt-4 space-x-4">
-                    <a href="https://www.youtube.com/@shirtlessdigital" class="hover:text-opacity-100">YouTube</a>
-                    <a href="mailto:contact@shirtlessdigital.com" class="hover:text-opacity-100">Email</a>
-                </div>
-            </div>
-        </div>
+<body class="min-h-screen bg-black text-white">
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 flex items-center justify-center bg-black z-50 transition-opacity duration-700">
+        <img src="logo.png" alt="Logo" class="w-64 h-64 object-contain cursor-pointer splash-zoom" id="splashLogo">
     </div>
-
-    <!-- Auth Section -->
-    <div id="authSection" class="min-h-screen flex items-center justify-center p-4 hidden">
-        <div class="w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 mx-auto mb-6 bg-white bg-opacity-10 rounded-3xl flex items-center justify-center">
-                    <i class="fas fa-gift text-3xl text-white"></i>
+    
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-black opacity-10 main-content hidden"></div>
+    <div class="absolute inset-0 main-content hidden" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%);"></div>
+    
+    <div class="relative z-10 min-h-screen main-content hidden">
+        <!-- Auth Section -->
+        <div id="authSection" class="w-full max-w-md mx-auto py-12 animate-fade-in">
+            <div class="glass-effect rounded-2xl card-shadow p-8 space-y-8 hover-glow">
+                <!-- Logo/Header -->
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white mb-2">GCX (Gift Card Exchange)</h1>
+                    <p class="text-white text-opacity-70 text-lg">Secure gift card management system</p>
                 </div>
-                <h1 class="text-4xl font-bold mb-2">SLD GC Portal</h1>
-                <p class="text-white text-opacity-70">Track your gift card status</p>
-            </div>
-            <div class="glass-effect rounded-3xl p-8">
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-white text-opacity-90 mb-3">Email Address</label>
-                        <input type="email" id="email" placeholder="Enter your email" class="apple-input w-full px-4 py-4 text-white placeholder-gray-400 focus:outline-none">
+            
+            <!-- Login Form -->
+            <div id="loginSection">
+                    <h2 class="text-2xl font-semibold text-white mb-6 text-center">Welcome Back</h2>
+                    <!-- Error Display Area -->
+                    <div id="loginError" class="hidden bg-red-500 bg-opacity-20 border border-red-500 border-opacity-30 text-red-300 p-4 rounded-xl mb-6 text-center">
+                        <span id="loginErrorText"></span>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-white text-opacity-90 mb-3">Password</label>
-                        <input type="password" id="password" placeholder="Enter your password" class="apple-input w-full px-4 py-4 text-white placeholder-gray-400 focus:outline-none">
-                    </div>
-                    <button onclick="sendOtp()" class="apple-button w-full text-white py-4 px-6 font-semibold focus:outline-none">
-                        Continue
+                    <form id="loginForm" class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="loginEmail" class="block text-sm font-medium text-white text-opacity-90">Email Address</label>
+                        <input type="email" id="loginEmail" name="email" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                </div>
+                        <div class="space-y-2">
+                            <label for="loginPassword" class="block text-sm font-medium text-white text-opacity-90">Password</label>
+                        <input type="password" id="loginPassword" name="password" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                </div>
+                    <button type="submit" id="loginButton"
+                            class="w-full btn-primary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center space-x-2 disabled:opacity-50">
+                            <span>Sign In</span>
+                </button>
+                </form>
+                    <div class="mt-6 text-center">
+                        <span class="text-white text-opacity-70">Don't have an account? </span>
+                        <button id="showRegisterBtn" class="text-white font-semibold hover:text-opacity-80 transition-colors">
+                            Create Account
                     </button>
+                    </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerSection" class="hidden">
+                    <h2 class="text-2xl font-semibold text-white mb-6 text-center">Create Account</h2>
+                    <form id="registerForm" class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="registerName" class="block text-sm font-medium text-white text-opacity-90">Full Name</label>
+                            <input type="text" id="registerName" name="name" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="registerEmail" class="block text-sm font-medium text-white text-opacity-90">Email Address</label>
+                        <input type="email" id="registerEmail" name="email" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                </div>
+                        <div class="space-y-2">
+                            <label for="registerPassword" class="block text-sm font-medium text-white text-opacity-90">Password</label>
+                        <input type="password" id="registerPassword" name="password" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                </div>
+                        <div class="space-y-2">
+                            <label for="confirmPassword" class="block text-sm font-medium text-white text-opacity-90">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required 
+                                class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                </div>
+                    <button type="submit" id="registerButton"
+                            class="w-full btn-secondary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center space-x-2 disabled:opacity-50">
+                            <span>Create Account</span>
+                </button>
+                </form>
+                    <div class="mt-6 text-center">
+                        <span class="text-white text-opacity-70">Already have an account? </span>
+                        <button id="showLoginBtn" class="text-white font-semibold hover:text-opacity-80 transition-colors">
+                            Sign In
+                    </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- OTP Section -->
-    <div id="otpSection" class="min-h-screen flex items-center justify-center p-4 hidden">
-        <div class="w-full max-w-md">
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 mx-auto mb-6 bg-white bg-opacity-10 rounded-3xl flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-3xl text-white"></i>
-                </div>
-                <h2 class="text-3xl font-bold mb-2">Verify Your Email</h2>
-                <p class="text-white text-opacity-70">Enter the verification code sent to your email</p>
-            </div>
-            <div class="glass-effect rounded-3xl p-8">
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-white text-opacity-90 mb-3">Verification Code</label>
-                        <input type="text" id="otp" maxlength="6" placeholder="Enter 6-digit code" class="apple-input w-full px-4 py-4 text-white text-center text-2xl tracking-widest focus:outline-none">
+        <!-- OTP Section -->
+        <div id="otpSection" class="w-full max-w-md mx-auto py-12 animate-fade-in hidden">
+            <div class="glass-effect rounded-2xl card-shadow p-8 space-y-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
                     </div>
-                    <button onclick="verifyOtp()" class="apple-button w-full text-white py-4 px-6 font-semibold focus:outline-none">
-                        Verify & Continue
-                    </button>
+                    <h2 class="text-2xl font-semibold text-white mb-2">Verify Your Email</h2>
+                    <p class="text-white text-opacity-70">We've sent a 6-digit code to your email address</p>
                 </div>
+
+                <form id="otpForm" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="otp" class="block text-sm font-medium text-white text-opacity-90">Verification Code</label>
+                        <input type="text" id="otp" name="otp" required maxlength="6" 
+                            class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent text-center text-2xl tracking-widest"
+                            placeholder="000000">
+                </div>
+                <button type="submit" id="verifyOtpButton"
+                        class="w-full btn-primary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center space-x-2 disabled:opacity-50">
+                        <span>Verify Code</span>
+                </button>
+                <button type="button" id="resendOtpButton"
+                        class="w-full bg-white bg-opacity-10 text-white py-3 px-6 rounded-xl font-semibold hover:bg-opacity-20 transition-all disabled:opacity-50">
+                        Resend Code
+                </button>
+            </form>
             </div>
         </div>
-    </div>
 
-    <!-- Status Section -->
-    <div id="statusSection" class="min-h-screen p-4 hidden">
-        <div class="max-w-6xl mx-auto">
-            <!-- Header -->
-            <div class="glass-effect rounded-3xl p-6 mb-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold" id="welcomeText">Welcome back!</h1>
-                        <p class="text-white text-opacity-70">Track your gift card submissions</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <button onclick="toggleChat()" class="apple-button text-white px-6 py-3 flex items-center justify-center space-x-2">
-                            <i class="fas fa-comments"></i>
-                            <span>Chat</span>
-                        </button>
-                        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full transition-all flex items-center justify-center space-x-2">
-                            <i class="fas fa-sign-out-alt"></i>
+        <!-- Home Page Section -->
+        <div id="homeSection" class="w-full animate-fade-in hidden">
+            <div class="glass-effect min-h-screen">
+                <!-- Header with Logout -->
+                <div class="flex justify-between items-center p-6 border-b border-white border-opacity-10">
+                    <h1 class="text-3xl font-bold text-white">GCX (Gift Card Exchange)</h1>
+                    <button id="homeLogoutButton" 
+                            class="btn-danger text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
                             <span>Logout</span>
+                    </button>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-6 py-8">
+                    <!-- Welcome Section -->
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-4">Welcome to GCX (Gift Card Exchange)</h2>
+                        <p class="text-white text-opacity-90 text-xl">Your One-Stop Portal for Converting Gift Cards to Real Cash & Unlocking Digital Reward Secrets.</p>
+                    </div>
+
+                    <!-- Gift Card Conversion Section -->
+                    <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12 feature-card">
+                        <h3 class="text-3xl font-bold text-white mb-6">💳 Convert Gift Cards to Cash</h3>
+                        <p class="text-white text-opacity-90 mb-8 text-lg">Got useless gift cards lying around? We make it super simple to turn them into actual money. No shady middlemen. No delays. Just fast payouts.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div class="space-y-4">
+                                <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
+                                    <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-lg">100% safe & verified</span>
+                                </div>
+                                <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
+                                    <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-lg">Support for Roblox, Overwatch, and Amazon</span>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
+                                    <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-lg">UPI, Paytm & crypto transfer options available</span>
+                                </div>
+                                <div class="flex items-center text-white bg-white bg-opacity-5 p-4 rounded-xl">
+                                    <svg class="w-6 h-6 mr-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-lg">AI Powered verification system</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="submitGiftCardBtn" class="w-full btn-primary text-white py-4 px-8 rounded-xl font-semibold text-lg flex items-center justify-center space-x-3 hover-glow">
+                            <span>💸 Start Selling Your Gift Card</span>
                         </button>
+                    </div>
+
+                    <!-- YouTube Tips Section -->
+                    <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12">
+                        <h3 class="text-2xl font-bold text-white mb-6">🎯 Latest Tips from YouTube</h3>
+                        <p class="text-white text-opacity-90 mb-6">Powered by <a href="https://www.youtube.com/@shirtlessdigital" class="text-white font-semibold hover:text-opacity-80">@ShirtLessDigital</a>, we bring you top tricks on how to <strong>maximize Microsoft Rewards, qualify more surveys</strong>, and <strong>stay updated on VPN workarounds</strong> to boost your digital earnings.</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="bg-white bg-opacity-5 rounded-xl p-6">
+                                <h4 class="text-xl font-bold text-white mb-4">🎥 Trick To Qualify Most Surveys</h4>
+                                <ul class="space-y-2 text-white text-opacity-90">
+                                    <li>• Update your profile regularly</li>
+                                    <li>• Use desktop mode for better matching</li>
+                                    <li>• Enable all categories for more availability</li>
+                                </ul>
+                                <p class="text-white text-opacity-70 mt-4 italic">Quick win: Try these today and watch your earnings grow.</p>
+                            </div>
+                            <div class="bg-white bg-opacity-5 rounded-xl p-6">
+                                <h4 class="text-xl font-bold text-white mb-4">🎥 Microsoft Rewards VPN Update</h4>
+                                <ul class="space-y-2 text-white text-opacity-90">
+                                    <li>• New rules affecting point tracking</li>
+                                    <li>• Best VPN setup guide (country/server)</li>
+                                    <li>• How to avoid flagging your account</li>
+                                </ul>
+                                <p class="text-white text-opacity-70 mt-4 italic">Stay ahead of Microsoft's latest policy tweaks.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- How It Works Section -->
+                    <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12">
+                        <h3 class="text-3xl font-bold text-white mb-8">⚙️ How It Works</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="text-center feature-card p-6 rounded-xl">
+                                <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
+                                    <span class="text-3xl">1</span>
+                                </div>
+                                <h4 class="text-2xl font-bold text-white mb-3">Submit Gift Card Details</h4>
+                                <p class="text-white text-opacity-90 text-lg">Choose your card type and value, upload proof video</p>
+                            </div>
+                            <div class="text-center feature-card p-6 rounded-xl">
+                                <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
+                                    <span class="text-3xl">2</span>
+                                </div>
+                                <h4 class="text-2xl font-bold text-white mb-3">Verification</h4>
+                                <p class="text-white text-opacity-90 text-lg">AI Powered system checks and validates your card</p>
+                            </div>
+                            <div class="text-center feature-card p-6 rounded-xl">
+                                <div class="w-20 h-20 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 glow">
+                                    <span class="text-3xl">3</span>
+                                </div>
+                                <h4 class="text-2xl font-bold text-white mb-3">Get Paid</h4>
+                                <p class="text-white text-opacity-90 text-lg">Choose from UPI, Paytm, or crypto transfer</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trusted By Section -->
+                    <div class="bg-white bg-opacity-10 rounded-xl p-8 mb-12 feature-card">
+                        <h3 class="text-3xl font-bold text-white mb-6">📲 Trusted By 100+ Users</h3>
+                        <div class="bg-white bg-opacity-5 rounded-xl p-8">
+                            <p class="text-white text-opacity-90 italic text-lg">"SLD GC Portal helped me not only cash out my card but also taught me how to earn more with daily reward hacks. 10/10!"</p>
+                            <p class="text-white font-semibold mt-4 text-lg">– Ravi, Lucknow</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section -->
+                    <div class="bg-white bg-opacity-10 rounded-xl p-8 feature-card">
+                        <h3 class="text-3xl font-bold text-white mb-8">🧾 Frequently Asked Questions</h3>
+                        <div class="space-y-8">
+                            <div class="bg-white bg-opacity-5 p-6 rounded-xl">
+                                <h4 class="text-2xl font-bold text-white mb-3">Which gift cards do you support?</h4>
+                                <p class="text-white text-opacity-90 text-lg">Amazon, Overwatch, and Roblox.</p>
+                            </div>
+                            <div class="bg-white bg-opacity-5 p-6 rounded-xl">
+                                <h4 class="text-2xl font-bold text-white mb-3">How do I prove my card is real?</h4>
+                                <p class="text-white text-opacity-90 text-lg">Record a short video showing the card redemption, and upload it during the submission process.</p>
+                            </div>
+                            <div class="bg-white bg-opacity-5 p-6 rounded-xl">
+                                <h4 class="text-2xl font-bold text-white mb-3">Is this legit?</h4>
+                                <p class="text-white text-opacity-90 text-lg">100%. We verify every transaction and offer real-time support.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="text-center text-white text-opacity-70 mt-12 pb-8">
+                        <p>© 2025 GCX (Gift Card Exchange). All rights reserved.</p>
+                        <div class="mt-4 space-x-4">
+                            <a href="https://www.youtube.com/@shirtlessdigital" class="hover:text-opacity-100">YouTube</a>
+                            <a href="mailto:contact@shirtlessdigital.com" class="hover:text-opacity-100">Email</a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Submissions List -->
-            <div id="submissionsList" class="space-y-4"></div>
         </div>
-    </div>
 
-    <!-- Chat Section -->
-    <div id="chatSection" class="fixed bottom-4 right-4 w-96 max-w-full glass-effect rounded-3xl hidden chat-container">
-        <div class="flex justify-between items-center p-6 border-b border-white border-opacity-20">
-            <h3 class="font-semibold text-lg">Admin Support</h3>
-            <button onclick="toggleChat()" class="text-white hover:text-opacity-70 w-8 h-8 flex items-center justify-center">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div id="chatMessages" class="h-80 overflow-y-auto p-4 space-y-4"></div>
-        <div class="p-4 border-t border-white border-opacity-20">
-            <div class="flex gap-3">
-                <input type="text" id="messageInput" placeholder="Type message..." class="apple-input flex-1 px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none">
-                <button onclick="sendMessage()" class="apple-button text-white px-4 py-3">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+        <!-- Gift Card Form Section -->
+        <div id="giftCardSection" class="w-full animate-fade-in hidden">
+            <div class="glass-effect min-h-screen">
+                <!-- Header -->
+                <div class="flex justify-between items-center p-6 border-b border-white border-opacity-10">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Submit Gift Card</h2>
+                        <p class="text-white text-opacity-70 mt-1">Fill in the details below to submit your gift card</p>
+                    </div>
+                    <button id="logoutButton" 
+                            class="btn-danger text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            <span>Logout</span>
+                    </button>
+                </div>
+
+                <div class="max-w-4xl mx-auto px-6 py-8">
+                    <!-- Status Message -->
+                    <div id="uploadStatus" class="hidden status-message"></div>
+
+                    <form id="giftCardForm" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label for="ticket_user_name" class="block text-sm font-medium text-white text-opacity-90">Ticket User Name</label>
+                            <input type="text" id="ticket_user_name" name="ticket_user_name" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                        </div>
+                            <div class="space-y-2">
+                                <label for="ticket_number" class="block text-sm font-medium text-white text-opacity-90">Ticket Number</label>
+                            <input type="text" id="ticket_number" name="ticket_number" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="gc_code" class="block text-sm font-medium text-white text-opacity-90">Gift Card Code</label>
+                                <input type="text" id="gc_code" name="gc_code" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="card_name" class="block text-sm font-medium text-white text-opacity-90">Card Name</label>
+                                <select id="card_name" name="card_name" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                                    <option value="">Select Card</option>
+                                    <option value="roblox">Roblox</option>
+                                    <option value="overwatch">Overwatch</option>
+                                    <option value="amazon">Amazon</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="gc_phone" class="block text-sm font-medium text-white text-opacity-90">Gift Card Phone</label>
+                                <input type="text" id="gc_phone" name="gc_phone" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="upi_id" class="block text-sm font-medium text-white text-opacity-90">UPI ID</label>
+                                <input type="text" id="upi_id" name="upi_id" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent"
+                                    placeholder="example@upi">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="amount" class="block text-sm font-medium text-white text-opacity-90">Amount</label>
+                                <select id="amount" name="amount" required 
+                                    class="form-input w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30 focus:border-transparent">
+                                    <option value="">Select Amount</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="proof_video" class="block text-sm font-medium text-white text-opacity-90">Proof Video</label>
+                            <div class="relative">
+                                <input type="file" id="proof_video" name="proof_video" accept="video/*" required 
+                                    class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-white file:bg-opacity-20 file:text-white hover:file:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-30">
+                            </div>
+                            <p class="text-white text-opacity-50 text-sm">Maximum file size: 100MB. Supported formats: MP4, AVI, MOV</p>
+                        </div>
+                        
+                        <button type="submit" id="submitButton" 
+                            class="w-full btn-primary text-white py-4 px-8 rounded-xl font-semibold text-lg flex items-center justify-center space-x-3 disabled:opacity-50">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                            <span>Submit Gift Card</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Video Modal -->
-    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 modal-backdrop hidden flex items-center justify-center z-50 p-4">
-        <div class="glass-effect rounded-3xl p-4 max-w-4xl w-full">
-            <div class="relative">
-                <button onclick="closeVideoModal()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-red-600 transition-all">
-                    <i class="fas fa-times"></i>
-                </button>
-                <video id="modalVideo" class="w-full rounded-2xl" controls></video>
+        <!-- Dashboard -->
+        <div id="dashboard" class="w-full animate-fade-in hidden">
+            <div class="glass-effect min-h-screen">
+                <!-- Header -->
+                <div class="flex justify-between items-center p-6 border-b border-white border-opacity-10">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Dashboard</h1>
+                        <p class="text-white text-opacity-70 mt-1">Welcome back, <span id="userName" class="font-semibold">User</span></p>
+                        <p class="text-white text-opacity-50 text-sm" id="userEmail"></p>
+                    </div>
+                    <button onclick="logout()" class="btn-danger text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-6 py-8">
+                    <!-- Submissions List -->
+                    <div id="submissionsList" class="space-y-4">
+                        <div class="text-center text-white text-opacity-70 py-12">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-white text-opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-lg">PLEASE LOGOUT AND LOGIN AGAIN</p>
+                            <p class="text-sm">YOU CANNOT SUBMIT GIFT CARDS WITHOUT LOGIN</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let userId = null, userEmail = null, currentOtp = null, userName = null, chatInterval = null;
-        
-        window.onload = () => clearSession();
-        
-        function clearSession() {
-            userId = userEmail = currentOtp = userName = null;
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('statusSection').classList.add('hidden');
-            document.getElementById('otpSection').classList.add('hidden');
-            document.getElementById('submissionsList').innerHTML = '';
+        // Clear any existing session data on page load
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const otpSection = document.getElementById('otpSection');
+        const homeSection = document.getElementById('homeSection');
+        const giftCardSection = document.getElementById('giftCardSection');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const otpForm = document.getElementById('otpForm');
+        const giftCardForm = document.getElementById('giftCardForm');
+        const submitGiftCardBtn = document.getElementById('submitGiftCardBtn');
+        const homeLogoutButton = document.getElementById('homeLogoutButton');
+
+        // Show loading modal
+        function showLoadingModal(message = 'Processing...') {
+            console.log('Showing loading modal:', message);
+            const modal = document.createElement('div');
+            modal.id = 'loadingModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 text-center">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-white text-lg">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
         }
-        
-        function logout() { clearSession(); }
-        
-        async function sendOtp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            if (!email || !password) return alert('Please enter both email and password');
+
+        function hideLoadingModal() {
+            console.log('Hiding loading modal');
+            const modal = document.getElementById('loadingModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Email validation
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Show loading state
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (isLoading) {
+                if (!button.getAttribute('data-original-text')) {
+                    button.setAttribute('data-original-text', button.innerHTML);
+                }
+                button.disabled = true;
+                button.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <span>Processing...</span>
+                `;
+            } else {
+                button.disabled = false;
+                const originalText = button.getAttribute('data-original-text');
+                if (originalText) {
+                    button.innerHTML = originalText;
+                }
+            }
+        }
+
+        // Show error message
+        function showError(message, target = 'uploadStatus') {
+            const statusDiv = document.getElementById(target);
+            if (target === 'loginError') {
+                const errorDiv = document.getElementById('loginError');
+                const errorText = document.getElementById('loginErrorText');
+                errorText.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            } else {
+                statusDiv.className = 'status-message bg-red-500 bg-opacity-20 text-white p-4 rounded-xl';
+                statusDiv.textContent = message;
+                statusDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.className = 'status-message bg-green-500 bg-opacity-20 text-white p-4 rounded-xl';
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden');
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
             
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // Validate email
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address', 'loginError');
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter your password', 'loginError');
+                return;
+            }
+
+            setLoading('loginButton', true);
+            showLoadingModal('Signing you in...');
+
             try {
-                const loginResponse = await fetch('/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ email, password })
                 });
-                const loginData = await loginResponse.json();
-                if (!loginData.success) return alert(loginData.error || 'Login failed');
-                
-                userId = loginData.user.id;
-                userEmail = email;
-                userName = loginData.user.name;
-                
-                const otpResponse = await fetch('/api/send-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, type: 'login' })
-                });
-                const otpData = await otpResponse.json();
-                if (otpData.success) {
-                    document.getElementById('authSection').classList.add('hidden');
-                    document.getElementById('otpSection').classList.remove('hidden');
-                    alert('OTP sent to your email');
+
+                const result = await response.json();
+                if (result.success) {
+                    sessionStorage.setItem('userId', result.user.id);
+                    sessionStorage.setItem('userEmail', result.user.email);
+                    sessionStorage.setItem('userName', result.user.name);
+                    
+                    showLoadingModal('Sending verification code...');
+                    
+                    const otpResponse = await fetch('/api/send-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, type: 'user' })
+                    });
+
+                    const otpResult = await otpResponse.json();
+                    if (otpResult.success) {
+                        hideLoadingModal();
+                        showSuccess('OTP sent to your email!');
+                        authSection.classList.add('hidden');
+                        otpSection.classList.remove('hidden');
+                    } else {
+                        hideLoadingModal();
+                        showError(otpResult.error || 'Failed to send OTP', 'loginError');
+                    }
                 } else {
-                    alert(otpData.error || 'Failed to send OTP');
+                    hideLoadingModal();
+                    showError(result.error || 'Login failed', 'loginError');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to send OTP. Please try again.');
+                hideLoadingModal();
+                showError('Login failed: ' + error.message, 'loginError');
+            } finally {
+                setLoading('loginButton', false);
+                hideLoadingModal();
             }
-        }
-        
-        async function verifyOtp() {
-            const otp = document.getElementById('otp').value;
-            if (!otp) return alert('Please enter the OTP');
-            
-            try {
-                const response = await fetch('/api/verify-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: userEmail, otp, type: 'login' })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    currentOtp = otp;
-                    document.getElementById('otpSection').classList.add('hidden');
-                    document.getElementById('statusSection').classList.remove('hidden');
-                    document.getElementById('welcomeText').textContent = `Welcome back, ${userName}!`;
-                    loadSubmissions();
-                } else {
-                    alert(data.error || 'OTP verification failed');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to verify OTP. Please try again.');
-            }
-        }
-        
-        async function loadSubmissions() {
-            if (!userId || !userEmail || !currentOtp) return clearSession();
-            
-            try {
-                const response = await fetch(`/api/user-submissions/${userId}`, {
-                    headers: { 'x-otp-token': currentOtp, 'x-user-email': userEmail }
-                });
-                const data = await response.json();
-                if (!data.success) throw new Error(data.error || 'Failed to load submissions');
-                
-                const list = document.getElementById('submissionsList');
-                list.innerHTML = data.submissions.length === 0 ? `
-                    <div class="text-center py-16 apple-card">
-                        <i class="fas fa-inbox text-4xl text-white text-opacity-50 mb-4"></i>
-                        <p class="text-white text-opacity-80 text-lg">No submissions found</p>
-                        <p class="text-white text-opacity-60">Your gift cards will appear here</p>
-                    </div>
-                ` : '';
-                
-                data.submissions.forEach(submission => {
-                    const statusColors = { approved: 'status-approved', rejected: 'status-rejected', pending: 'status-pending' };
-                    const card = document.createElement('div');
-                    card.className = 'apple-card p-6';
-                    card.innerHTML = `
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                            <span class="text-white text-opacity-70 text-sm">${new Date(submission.created_at).toLocaleDateString()}</span>
-                            <span class="px-4 py-2 text-xs font-semibold rounded-full text-white ${statusColors[submission.status] || 'bg-gray-500'}">
-                                ${submission.status.toUpperCase()}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white">
-                            <p><span class="text-opacity-70 text-white">UID:</span> ${submission.id}</p>
-                            <p><span class="text-opacity-70 text-white">Card:</span> ${submission.ticket_user_name}</p>
-                            <p><span class="text-opacity-70 text-white">Ticket:</span> ${submission.ticket_number}</p>
-                            <p><span class="text-opacity-70 text-white">Amount:</span> ₹${submission.amount}</p>
-                        </div>
-                        ${submission.proof_video_url ? `
-                            <button onclick="showVideoModal('${submission.proof_video_url}')" class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium transition-all">
-                                <i class="fas fa-play-circle mr-2"></i>View Proof Video
-                            </button>
-                        ` : ''}
-                    `;
-                    list.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to load submissions. Please try again.');
-                clearSession();
-            }
-        }
-        
-        function showVideoModal(url) {
-            document.getElementById('modalVideo').src = url;
-            document.getElementById('videoModal').classList.remove('hidden');
-        }
-        
-        function closeVideoModal() {
-            const video = document.getElementById('modalVideo');
-            video.pause();
-            video.src = '';
-            document.getElementById('videoModal').classList.add('hidden');
-        }
-        
-        function toggleChat() {
-            const chat = document.getElementById('chatSection');
-            if (chat.classList.contains('hidden')) {
-                chat.classList.remove('hidden');
-                loadMessages();
-                chatInterval = setInterval(loadMessages, 5000);
-            } else {
-                chat.classList.add('hidden');
-                if (chatInterval) clearInterval(chatInterval);
-            }
-        }
-        
-        async function loadMessages() {
-            if (!userId || !userEmail || !currentOtp) return;
-            try {
-                const response = await fetch(`/api/messages/${userId}`, {
-                    headers: { 'x-otp-token': currentOtp, 'x-user-email': userEmail }
-                });
-                const data = await response.json();
-                if (!data.success) throw new Error(data.error);
-                
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = '';
-                data.messages.forEach(msg => {
-                    const div = document.createElement('div');
-                    div.className = `flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
-                    div.innerHTML = `
-                        <div class="max-w-[80%] ${msg.sender === 'user' ? 'bg-blue-500' : 'bg-white bg-opacity-20'} rounded-2xl px-4 py-3">
-                            <p class="text-white text-sm">${msg.content}</p>
-                            <p class="text-white text-opacity-60 text-xs mt-1">${new Date(msg.created_at).toLocaleTimeString()}</p>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-                container.scrollTop = container.scrollHeight;
-            } catch (error) {
-                console.error('Error loading messages:', error);
-            }
-        }
-        
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
-            if (!content || !userId) return;
-            
-            try {
-                const response = await fetch('/api/messages', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-otp-token': currentOtp, 'x-user-email': userEmail },
-                    body: JSON.stringify({ userId, content, sender: 'user' })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    input.value = '';
-                    loadMessages();
-                } else throw new Error(data.error);
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to send message');
-            }
-        }
-        
-        // Event listeners
-        document.getElementById('messageInput')?.addEventListener('keypress', e => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        
-        document.getElementById('videoModal').addEventListener('click', e => {
-            if (e.target === document.getElementById('videoModal')) closeVideoModal();
         });
 
-        // Ensure login menu is hidden by default
-        document.getElementById('authSection').classList.add('hidden');
-        // Bind the Track Status button to show login menu
-        document.getElementById('trackStatusBtn').addEventListener('click', function() {
-            document.getElementById('mainMenuContent').classList.add('hidden');
-            document.getElementById('authSection').classList.remove('hidden');
-            document.getElementById('email').focus();
+        // Handle register form submission
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validation
+            if (!name || !email || !password || !confirmPassword) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            setLoading('registerButton', true);
+            showLoadingModal('Creating your account...');
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('Account created successfully! Please login.');
+                    document.getElementById('registerSection').classList.add('hidden');
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showError(result.error || 'Registration failed');
+                }
+            } catch (error) {
+                showError('Registration failed: ' + error.message);
+            } finally {
+                setLoading('registerButton', false);
+                hideLoadingModal();
+            }
+        });
+
+        // Handle OTP form submission
+        otpForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const otp = document.getElementById('otp').value;
+            if (!otp || otp.length !== 6) {
+                showError('Please enter a valid 6-digit code');
+                return;
+            }
+
+            setLoading('verifyOtpButton', true);
+            showLoadingModal('Verifying your code...');
+
+            try {
+                const email = sessionStorage.getItem('userEmail');
+                const response = await fetch('/api/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, otp, type: 'user' })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    sessionStorage.setItem('otpToken', otp);
+                    showSuccess('OTP verified successfully!');
+                    otpSection.classList.add('hidden');
+                    homeSection.classList.remove('hidden');
+                } else {
+                    showError(result.error || 'Invalid OTP');
+                }
+            } catch (error) {
+                showError('Failed to verify OTP: ' + error.message);
+            } finally {
+                setLoading('verifyOtpButton', false);
+                hideLoadingModal();
+            }
+        });
+
+        // Handle resend OTP
+        document.getElementById('resendOtpButton').addEventListener('click', async function() {
+            setLoading('resendOtpButton', true);
+            showLoadingModal('Resending verification code...');
+            
+            const email = sessionStorage.getItem('userEmail');
+
+            try {
+                const response = await fetch('/api/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, type: 'user' })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('OTP resent successfully!');
+                } else {
+                    showError(result.error || 'Failed to resend OTP');
+                }
+            } catch (error) {
+                showError('Failed to resend OTP: ' + error.message);
+            } finally {
+                setLoading('resendOtpButton', false);
+                hideLoadingModal();
+            }
+        });
+
+        // Handle gift card form submission
+        giftCardForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            setLoading('submitButton', true);
+
+            try {
+                // First upload the video to file2link
+                const videoFile = document.getElementById('proof_video').files[0];
+                if (!videoFile) {
+                    showError('Please select a video file');
+                    setLoading('submitButton', false);
+                    return;
+                }
+
+                // Create form data for video upload
+                const videoFormData = new FormData();
+                videoFormData.append('file', videoFile);
+
+                // Upload video to file2link
+                const uploadResponse = await fetch('https://shashwatidrnpo-inv.hf.space/upload', {
+                    method: 'POST',
+                    body: videoFormData
+                });
+
+                const uploadResult = await uploadResponse.json();
+                if (!uploadResult.success) {
+                    showError('Failed to upload video: ' + uploadResult.error);
+                    setLoading('submitButton', false);
+                    return;
+                }
+
+                // Get user data from session storage
+                const userId = sessionStorage.getItem('userId');
+                const userEmail = sessionStorage.getItem('userEmail');
+                const otpToken = sessionStorage.getItem('otpToken');
+
+                if (!userId || !userEmail || !otpToken) {
+                    showError('Please login again to submit gift card');
+                    setLoading('submitButton', false);
+                    return;
+                }
+
+                // Create request body with all form fields
+                const requestBody = {
+                    ticket_user_name: document.getElementById('ticket_user_name').value,
+                    ticket_number: document.getElementById('ticket_number').value,
+                    gc_code: document.getElementById('gc_code').value,
+                    gc_phone: document.getElementById('gc_phone').value,
+                    upi_id: document.getElementById('upi_id').value,
+                    amount: document.getElementById('amount').value,
+                    proof_video_url: uploadResult.access_url
+                };
+
+                console.log('Submitting gift card with data:', requestBody); // Debug log
+
+                const response = await fetch('/api/gift-cards', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-otp-token': otpToken,
+                        'x-user-email': userEmail,
+                        'x-user-id': userId
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('Gift card submitted successfully!');
+                    giftCardForm.reset();
+                    // Switch back to home page
+                    giftCardSection.classList.add('hidden');
+                    homeSection.classList.remove('hidden');
+                } else {
+                    showError(result.error || 'Failed to submit gift card');
+                }
+            } catch (error) {
+                showError('Failed to submit gift card: ' + error.message);
+            } finally {
+                setLoading('submitButton', false);
+            }
+        });
+
+        // Handle submit gift card button click
+        submitGiftCardBtn.addEventListener('click', function() {
+            homeSection.classList.add('hidden');
+            giftCardSection.classList.remove('hidden');
+        });
+
+        // Handle logout
+        function logout() {
+            // Clear session data
+            sessionStorage.clear();
+            // Show auth section
+            homeSection.classList.add('hidden');
+            giftCardSection.classList.add('hidden');
+            authSection.classList.remove('hidden');
+            // Reset forms
+            loginForm.reset();
+            registerForm.reset();
+            otpForm.reset();
+            giftCardForm.reset();
+        }
+
+        // Add logout handlers
+        homeLogoutButton.addEventListener('click', logout);
+        document.getElementById('logoutButton').addEventListener('click', logout);
+
+        // Toggle between login and register forms
+        document.getElementById('showRegisterBtn').addEventListener('click', function() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.remove('hidden');
+        });
+
+        document.getElementById('showLoginBtn').addEventListener('click', function() {
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        });
+
+        // Check if already logged in on page load
+        window.onload = function() {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                window.currentUser = user; // Set window.currentUser if you use it
+                sessionStorage.setItem('userId', user.id);
+                sessionStorage.setItem('userEmail', user.email);
+                showDashboard();
+            }
+        }
+
+        // Add smooth transitions and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add fade-in animation to main container
+            const container = document.querySelector('.container');
+            if (container) {
+                container.classList.add('animate-fade-in');
+            }
+            
+            // Add focus effects to inputs
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('transform', 'scale-105');
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('transform', 'scale-105');
+                });
+            });
+        });
+
+        // Add card amount options based on selection
+        document.getElementById('card_name').addEventListener('change', function(e) {
+            const amountSelect = document.getElementById('amount');
+            amountSelect.innerHTML = '<option value="">Select Amount</option>';
+            
+            const amounts = {
+                'roblox': ['100', '400', '1000'],
+                'overwatch': ['200', '500', '1000'],
+                'amazon': ['50', '100', '500']
+            };
+            
+            const selectedCard = e.target.value;
+            if (selectedCard && amounts[selectedCard]) {
+                amounts[selectedCard].forEach(amount => {
+                    const option = document.createElement('option');
+                    option.value = amount;
+                    option.textContent = amount;
+                    amountSelect.appendChild(option);
+                });
+            }
+        });
+
+        // Add real-time validation for UPI ID
+        document.getElementById('upi_id').addEventListener('input', function(e) {
+            const value = e.target.value;
+            const upiRegex = /^[a-zA-Z0-9.\-_]+@[a-zA-Z0-9.\-_]+$/;
+            
+            if (value && !upiRegex.test(value)) {
+                e.target.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            } else {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }
+        });
+
+        // Add OTP input formatting
+        document.getElementById('otp').addEventListener('input', function(e) {
+            // Only allow numbers
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            
+            // Limit to 6 digits
+            if (e.target.value.length > 6) {
+                e.target.value = e.target.value.slice(0, 6);
+            }
+        });
+
+        // Splash screen logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const splash = document.getElementById('splashScreen');
+            const logo = document.getElementById('splashLogo');
+            const mainContent = document.querySelectorAll('.main-content');
+            // Hide scroll while splash is visible
+            document.body.style.overflow = 'hidden';
+            logo.addEventListener('click', function() {
+                splash.classList.add('fade-out');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    mainContent.forEach(el => {
+                        el.classList.remove('hidden');
+                        el.classList.add('fade-in');
+                    });
+                    document.body.style.overflow = '';
+                }, 700);
+            });
         });
     </script>
 </body>
-</html>
+</html> 
